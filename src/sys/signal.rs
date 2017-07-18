@@ -3,7 +3,9 @@
 
 use libc;
 use {Errno, Error, Result};
+#[cfg(not(target_os = "openbsd"))]
 use std::fmt;
+#[cfg(not(target_os = "openbsd"))]
 use std::fmt::Debug;
 use std::mem;
 #[cfg(any(target_os = "dragonfly", target_os = "freebsd"))]

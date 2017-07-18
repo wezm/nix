@@ -178,7 +178,10 @@ mod os {
     pub const SO_REUSEPORT: c_int           = libc::SO_REUSEPORT;
     pub const SO_REUSESHAREUID: c_int       = 0x1025;
     pub const SO_SNDBUF: c_int              = libc::SO_SNDBUF;
+    #[cfg(not(target_os = "openbsd"))]
     pub const SO_TIMESTAMP: c_int           = libc::SO_TIMESTAMP;
+    #[cfg(target_os = "openbsd")]
+    pub const SO_TIMESTAMP: c_int           = 0x0800;
     #[cfg(not(target_os = "netbsd"))]
     pub const SO_TIMESTAMP_MONOTONIC: c_int = 0x0800;
     pub const SO_TYPE: c_int                = libc::SO_TYPE;

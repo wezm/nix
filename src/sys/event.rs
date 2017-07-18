@@ -22,13 +22,12 @@ pub struct KEvent {
           target_os = "dragonfly", target_os = "macos",
           target_os = "ios"))]
 type type_of_udata = *mut ::c_void;
-#[cfg(any(target_os = "openbsd", target_os = "freebsd",
-          target_os = "dragonfly", target_os = "macos",
-          target_os = "ios"))]
+#[cfg(any(target_os = "freebsd", target_os = "dragonfly",
+          target_os = "macos", target_os = "ios"))]
 type type_of_data = libc::intptr_t;
 #[cfg(any(target_os = "netbsd"))]
 type type_of_udata = intptr_t;
-#[cfg(any(target_os = "netbsd"))]
+#[cfg(any(target_os = "netbsd", target_os = "openbsd"))]
 type type_of_data = libc::int64_t;
 
 #[cfg(not(target_os = "netbsd"))]
@@ -79,9 +78,10 @@ pub enum EventFilter {
 }
 
 #[cfg(any(target_os = "macos", target_os = "ios",
-          target_os = "freebsd", target_os = "dragonfly"))]
+          target_os = "freebsd", target_os = "dragonfly",
+          target_os = "openbsd"))]
 pub type type_of_event_flag = u16;
-#[cfg(any(target_os = "netbsd", target_os = "openbsd"))]
+#[cfg(any(target_os = "netbsd"))]
 pub type type_of_event_flag = u32;
 libc_bitflags!{
     pub flags EventFlag: type_of_event_flag {
@@ -89,6 +89,7 @@ libc_bitflags!{
         EV_CLEAR,
         EV_DELETE,
         EV_DISABLE,
+        #[cfg(not(target_os = "openbsd"))]
         EV_DISPATCH,
         #[cfg(target_os = "freebsd")]
         EV_DROP,
@@ -315,13 +316,13 @@ fn test_struct_kevent() {
 
     let expected = libc::kevent{ident: 0xdeadbeef,
                                 filter: libc::EVFILT_READ,
-                                flags: libc::EV_DISPATCH | libc::EV_ADD,
+                                flags: libc::EV_ONESHOT | libc::EV_ADD,
                                 fflags: libc::NOTE_CHILD | libc::NOTE_EXIT,
                                 data: 0x1337,
                                 udata: udata as type_of_udata};
     let actual = KEvent::new(0xdeadbeef,
                              EventFilter::EVFILT_READ,
-                             EV_DISPATCH | EV_ADD,
+                             EV_ONESHOT | EV_ADD,
                              NOTE_CHILD | NOTE_EXIT,
                              0x1337,
                              udata);

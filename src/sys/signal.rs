@@ -490,11 +490,13 @@ pub enum SigevNotify {
 
 /// Used to request asynchronous notification of the completion of certain
 /// events, such as POSIX AIO and timers.
+#[cfg(not(target_os = "openbsd"))]
 #[repr(C)]
 pub struct SigEvent {
     sigevent: libc::sigevent
 }
 
+#[cfg(not(target_os = "openbsd"))]
 impl SigEvent {
     // Note: this constructor does not allow the user to set the
     // sigev_notify_kevent_flags field.  That's considered ok because on FreeBSD
@@ -559,6 +561,7 @@ impl SigEvent {
     }
 }
 
+#[cfg(not(target_os = "openbsd"))]
 impl Debug for SigEvent {
     #[cfg(any(target_os = "linux", target_os = "freebsd"))]
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
@@ -581,6 +584,7 @@ impl Debug for SigEvent {
     }
 }
 
+#[cfg(not(target_os = "openbsd"))]
 impl<'a> From<&'a libc::sigevent> for SigEvent {
     fn from(sigevent: &libc::sigevent) -> Self {
         SigEvent{ sigevent: sigevent.clone() }

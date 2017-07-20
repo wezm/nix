@@ -89,7 +89,14 @@ libc_bitflags!{
         EV_CLEAR,
         EV_DELETE,
         EV_DISABLE,
-        #[cfg(not(target_os = "openbsd"))]
+        // No released version of OpenBSD supports EV_DISPATCH or EV_RECEIPT.
+        // These have been commited to the -current branch though and are
+        // expected to be part of the OpenBSD 6.2 release in Nov 2017.
+        // See: https://marc.info/?l=openbsd-tech&m=149621427511219&w=2
+        // https://github.com/rust-lang/libc/pull/613
+        #[cfg(any(target_os = "macos", target_os = "ios",
+                  target_os = "freebsd", target_os = "dragonfly",
+                  target_os = "netbsd"))]
         EV_DISPATCH,
         #[cfg(target_os = "freebsd")]
         EV_DROP,
@@ -106,7 +113,9 @@ libc_bitflags!{
         EV_OOBAND,
         #[cfg(any(target_os = "macos", target_os = "ios"))]
         EV_POLL,
-        #[cfg(not(target_os = "openbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "ios",
+                  target_os = "freebsd", target_os = "dragonfly",
+                  target_os = "netbsd"))]
         EV_RECEIPT,
         EV_SYSFLAGS,
     }

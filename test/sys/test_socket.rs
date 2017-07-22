@@ -121,8 +121,10 @@ pub fn test_scm_rights() {
         let iov = [IoVec::from_mut_slice(&mut buf[..])];
         let mut cmsgspace: CmsgSpace<[RawFd; 1]> = CmsgSpace::new();
         let msg = recvmsg(fd2, &iov, Some(&mut cmsgspace), MsgFlags::empty()).unwrap();
+        // XXX: Should we be checking that 'hello' was received somewhere in here
 
         for cmsg in msg.cmsgs() {
+            println!("Receieved control message");
             if let ControlMessage::ScmRights(fd) = cmsg {
                 assert_eq!(received_r, None);
                 assert_eq!(fd.len(), 1);
@@ -136,13 +138,14 @@ pub fn test_scm_rights() {
     }
 
     let received_r = received_r.expect("Did not receive passed fd");
+    println!("received_r = {}", received_r);
     // Ensure that the received file descriptor works
-    write(w, b"world").unwrap();
+    write(w, b"world").expect("Error writing to pipe");
     let mut buf = [0u8; 5];
-    read(received_r, &mut buf).unwrap();
+    read(received_r, &mut buf).expect("Unable to read from received fd");
     assert_eq!(&buf[..], b"world");
-    close(received_r).unwrap();
-    close(w).unwrap();
+    close(received_r).expect("Error closing received fd");
+    close(w).expect("Error closing pipe write fd");
 }
 
 // Verify `sendmsg` builds a valid `msghdr` when passing an empty

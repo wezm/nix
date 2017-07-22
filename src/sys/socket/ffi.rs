@@ -8,6 +8,9 @@ use libc::{c_int, c_void, socklen_t, size_t, ssize_t};
 #[cfg(target_os = "macos")]
 use libc::c_uint;
 
+#[cfg(target_os = "openbsd")]
+use libc::c_uchar;
+
 use sys::uio::IoVec;
 
 #[cfg(target_os = "linux")]
@@ -16,12 +19,19 @@ pub type type_of_cmsg_len = size_t;
 #[cfg(not(target_os = "linux"))]
 pub type type_of_cmsg_len = socklen_t;
 
+#[cfg(target_os = "linux")]
+pub type type_of_controllen = size_t;
+
+#[cfg(not(target_os = "linux"))]
+pub type type_of_controllen = socklen_t;
+
 // OSX always aligns struct cmsghdr as if it were a 32-bit OS
 #[cfg(target_os = "macos")]
 pub type type_of_cmsg_data = c_uint;
 
 #[cfg(not(target_os = "macos"))]
-pub type type_of_cmsg_data = size_t;
+pub type type_of_cmsg_data = c_uchar;
+
 
 // Private because we don't expose any external functions that operate
 // directly on this type; we just use it internally at FFI boundaries.
@@ -35,7 +45,7 @@ pub struct msghdr<'a> {
     pub msg_iov: *const IoVec<&'a [u8]>,
     pub msg_iovlen: size_t,
     pub msg_control: *const c_void,
-    pub msg_controllen: size_t,
+    pub msg_controllen: type_of_controllen,
     pub msg_flags: c_int,
 }
 

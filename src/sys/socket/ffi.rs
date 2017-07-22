@@ -8,7 +8,7 @@ use libc::{c_int, c_void, socklen_t, size_t, ssize_t};
 #[cfg(target_os = "macos")]
 use libc::c_uint;
 
-#[cfg(target_os = "openbsd")]
+#[cfg(not(target_os = "macos"))]
 use libc::c_uchar;
 
 use sys::uio::IoVec;

@@ -85,7 +85,7 @@ unsafe fn copy_bytes<'a, 'b, T: ?Sized>(src: &T, dst: &'a mut &'b mut [u8]) {
 }
 
 
-use self::ffi::{cmsghdr, msghdr, type_of_cmsg_len, type_of_cmsg_data};
+use self::ffi::{cmsghdr, msghdr, type_of_cmsg_len, type_of_cmsg_data, type_of_msg_iovlen};
 
 /// A structure used to make room in a cmsghdr passed to recvmsg. The
 /// size and alignment match that of a cmsghdr followed by a T, but the
@@ -152,6 +152,7 @@ impl<'a> Iterator for CmsgIterator<'a> {
 
         // Advance our internal pointer.
         if cmsg_align(cmsg_len) > buf.len() {
+            println!("cmsg_align(cmsg_len) > buf.len(): {} > {}", cmsg_align(cmsg_len), buf.len());
             return None;
         }
         self.0 = &buf[cmsg_align(cmsg_len)..];
@@ -287,9 +288,9 @@ pub fn sendmsg<'a>(fd: RawFd, iov: &[IoVec<&'a [u8]>], cmsgs: &[ControlMessage<'
         msg_name: name as *const c_void,
         msg_namelen: namelen,
         msg_iov: iov.as_ptr(),
-        msg_iovlen: iov.len() as size_t,
+        msg_iovlen: iov.len() as type_of_msg_iovlen,
         msg_control: cmsg_ptr,
-        msg_controllen: capacity as size_t,
+        msg_controllen: capacity as type_of_cmsg_len,
         msg_flags: 0,
     };
     let ret = unsafe { ffi::sendmsg(fd, &mhdr, flags.bits()) };
@@ -310,9 +311,9 @@ pub fn recvmsg<'a, T>(fd: RawFd, iov: &[IoVec<&mut [u8]>], cmsg_buffer: Option<&
         msg_name: &mut address as *const _ as *const c_void,
         msg_namelen: mem::size_of::<sockaddr_storage>() as socklen_t,
         msg_iov: iov.as_ptr() as *const IoVec<&[u8]>, // safe cast to add const-ness
-        msg_iovlen: iov.len() as size_t,
+        msg_iovlen: iov.len() as type_of_msg_iovlen,
         msg_control: msg_control as *const c_void,
-        msg_controllen: msg_controllen as size_t,
+        msg_controllen: msg_controllen as type_of_cmsg_len,
         msg_flags: 0,
     };
     let ret = unsafe { ffi::recvmsg(fd, &mut mhdr, flags.bits()) };

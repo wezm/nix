@@ -191,6 +191,18 @@ impl ForkResult {
 /// Continuing execution in parent process, new child has pid: 1234
 /// I'm a new child process
 /// ```
+///
+/// # Safety
+///
+/// In a multithreaded program, only [async-signal-safe] functions like `pause`
+/// and `_exit` may be called by the child (the parent isn't restricted). Note
+/// that memory allocation may **not** be async-signal-safe and thus must be
+/// prevented.
+///
+/// Those functions are only a small subset of your operating system's API, so
+/// special care must be taken to only invoke code you can control and audit.
+///
+/// [async-signal-safe]: http://man7.org/linux/man-pages/man7/signal-safety.7.html
 #[inline]
 pub fn fork() -> Result<ForkResult> {
     use self::ForkResult::*;
@@ -687,7 +699,7 @@ pub fn gethostname<'a>(buffer: &'a mut [u8]) -> Result<&'a CStr> {
 /// use nix::unistd::close;
 ///
 /// fn main() {
-///     let mut f = tempfile::tempfile().unwrap();
+///     let f = tempfile::tempfile().unwrap();
 ///     close(f.as_raw_fd()).unwrap();   // Bad!  f will also close on drop!
 /// }
 /// ```
@@ -700,7 +712,7 @@ pub fn gethostname<'a>(buffer: &'a mut [u8]) -> Result<&'a CStr> {
 /// use nix::unistd::close;
 ///
 /// fn main() {
-///     let mut f = tempfile::tempfile().unwrap();
+///     let f = tempfile::tempfile().unwrap();
 ///     close(f.into_raw_fd()).unwrap(); // Good.  into_raw_fd consumes f
 /// }
 /// ```
@@ -1596,9 +1608,6 @@ mod linux {
     use {Errno, Result, NixPath};
     use super::{Uid, Gid};
 
-    #[cfg(feature = "execvpe")]
-    use std::ffi::CString;
-
     pub fn pivot_root<P1: ?Sized + NixPath, P2: ?Sized + NixPath>(
             new_root: &P1, put_old: &P2) -> Result<()> {
         let res = try!(try!(new_root.with_nix_path(|new_root| {
@@ -1642,24 +1651,5 @@ mod linux {
         let res = unsafe { libc::setresgid(rgid.into(), egid.into(), sgid.into()) };
 
         Errno::result(res).map(drop)
-    }
-
-    #[inline]
-    #[cfg(feature = "execvpe")]
-    pub fn execvpe(filename: &CString, args: &[CString], env: &[CString]) -> Result<()> {
-        use std::ptr;
-        use libc::c_char;
-
-        let mut args_p: Vec<*const c_char> = args.iter().map(|s| s.as_ptr()).collect();
-        args_p.push(ptr::null());
-
-        let mut env_p: Vec<*const c_char> = env.iter().map(|s| s.as_ptr()).collect();
-        env_p.push(ptr::null());
-
-        unsafe {
-            super::ffi::execvpe(filename.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
-        };
-
-        Err(Error::Sys(Errno::last()))
     }
 }

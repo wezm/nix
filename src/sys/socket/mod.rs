@@ -121,11 +121,17 @@ impl<'a> RecvMsg<'a> {
     /// Iterate over the valid control messages pointed to by this
     /// msghdr.
     pub fn cmsgs(&self) -> CmsgIterator {
-        CmsgIterator(self.cmsg_buffer)
+        CmsgIterator{
+            buf: self.cmsg_buffer,
+            next: 0
+        }
     }
 }
 
-pub struct CmsgIterator<'a>(&'a [u8]);
+pub struct CmsgIterator<'a> {
+    buf: &'a [u8],
+    next: usize,
+}
 
 impl<'a> Iterator for CmsgIterator<'a> {
     type Item = ControlMessage<'a>;
@@ -134,12 +140,11 @@ impl<'a> Iterator for CmsgIterator<'a> {
     // although we handle the invariants in slightly different places to
     // get a better iterator interface.
     fn next(&mut self) -> Option<ControlMessage<'a>> {
-        let buf = self.0;
         let sizeof_cmsghdr = mem::size_of::<cmsghdr>();
-        if buf.len() < sizeof_cmsghdr {
+        if self.buf.len() < sizeof_cmsghdr {
             return None;
         }
-        let cmsg: &cmsghdr = unsafe { mem::transmute(buf.as_ptr()) };
+        let cmsg: &cmsghdr = unsafe { mem::transmute(self.buf.as_ptr()) };
 
         // This check is only in the glibc implementation of CMSG_NXTHDR
         // (although it claims the kernel header checks this), but such
@@ -151,11 +156,21 @@ impl<'a> Iterator for CmsgIterator<'a> {
         let len = cmsg_len - sizeof_cmsghdr;
 
         // Advance our internal pointer.
-        if cmsg_align(cmsg_len) > buf.len() {
-            println!("cmsg_align(cmsg_len) > buf.len(): {} > {}", cmsg_align(cmsg_len), buf.len());
-            return None;
+        if self.next == 0 {
+            // CMSG_FIRSTHDR
+            if cmsg_len > self.buf.len() {
+                return None;
+            }
+            self.buf = &self.buf[cmsg_len..];
         }
-        self.0 = &buf[cmsg_align(cmsg_len)..];
+        else {
+            // CMSG_NXTHDR
+            if cmsg_align(cmsg_len) > self.buf.len() {
+                return None;
+            }
+            self.buf = &self.buf[cmsg_align(cmsg_len)..];
+        }
+        self.next += 1;
 
         match (cmsg.cmsg_level, cmsg.cmsg_type) {
             (SOL_SOCKET, SCM_RIGHTS) => unsafe {

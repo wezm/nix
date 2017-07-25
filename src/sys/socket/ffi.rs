@@ -3,7 +3,10 @@
 
 pub use libc::{socket, listen, bind, accept, connect, setsockopt, sendto, recvfrom, getsockname, getpeername, recv, send};
 
-use libc::{c_int, c_void, socklen_t, size_t, ssize_t};
+use libc::{c_int, c_void, socklen_t, ssize_t};
+
+#[cfg(not(target_os = "macos"))]
+use libc::size_t;
 
 #[cfg(not(target_os = "linux"))]
 use libc::c_uint;

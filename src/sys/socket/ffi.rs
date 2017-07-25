@@ -32,8 +32,6 @@ pub type type_of_msg_iovlen = size_t;
 #[cfg(not(target_os = "linux"))]
 pub type type_of_msg_iovlen = c_uint;
 
-
-
 // Private because we don't expose any external functions that operate
 // directly on this type; we just use it internally at FFI boundaries.
 // Note that in some cases we store pointers in *const fields that the

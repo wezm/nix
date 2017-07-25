@@ -121,7 +121,7 @@ impl<'a> RecvMsg<'a> {
     /// Iterate over the valid control messages pointed to by this
     /// msghdr.
     pub fn cmsgs(&self) -> CmsgIterator {
-        CmsgIterator{
+        CmsgIterator {
             buf: self.cmsg_buffer,
             next: 0
         }
@@ -154,22 +154,19 @@ impl<'a> Iterator for CmsgIterator<'a> {
             return None;
         }
         let len = cmsg_len - sizeof_cmsghdr;
+        let aligned_cmsg_len = if self.next == 0 {
+            // CMSG_FIRSTHDR
+            cmsg_len
+        } else {
+            // CMSG_NXTHDR
+            cmsg_align(cmsg_len)
+        };
 
         // Advance our internal pointer.
-        if self.next == 0 {
-            // CMSG_FIRSTHDR
-            if cmsg_len > self.buf.len() {
-                return None;
-            }
-            self.buf = &self.buf[cmsg_len..];
+        if aligned_cmsg_len > self.buf.len() {
+            return None;
         }
-        else {
-            // CMSG_NXTHDR
-            if cmsg_align(cmsg_len) > self.buf.len() {
-                return None;
-            }
-            self.buf = &self.buf[cmsg_align(cmsg_len)..];
-        }
+        self.buf = &self.buf[aligned_cmsg_len..];
         self.next += 1;
 
         match (cmsg.cmsg_level, cmsg.cmsg_type) {

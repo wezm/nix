@@ -497,6 +497,7 @@ pub mod sigevent {
     use std::fmt;
     use std::fmt::Debug;
     use super::SigevNotify;
+    use super::type_of_thread_id;
 
     /// Used to request asynchronous notification of the completion of certain
     /// events, such as POSIX AIO and timers.

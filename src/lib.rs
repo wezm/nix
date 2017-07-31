@@ -23,13 +23,7 @@ extern crate nix_test as nixtest;
 
 #[macro_use] mod macros;
 
-// In rust 1.8+ this should be `pub extern crate libc` but prior
-// to https://github.com/rust-lang/rust/issues/26775 being resolved
-// it is necessary to get a little creative.
-pub mod libc {
-    extern crate libc;
-    pub use self::libc::*;
-}
+pub extern crate libc;
 
 pub use errno::Errno;
 
@@ -45,7 +39,6 @@ pub mod mqueue;
 
 pub mod pty;
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
 pub mod poll;
 
 pub mod net;

@@ -48,7 +48,7 @@ matrix:
       rust: 1.13.0
     - env: TARGET=arm-unknown-linux-gnueabi
       rust: 1.13.0
-    - env: TARGET=arm-unknown-linux-musleabi
+    - env: TARGET=arm-unknown-linux-musleabi DISABLE_TESTS=1
       rust: 1.14.0
     - env: TARGET=armv7-unknown-linux-gnueabihf
       rust: 1.13.0
@@ -70,7 +70,7 @@ matrix:
       rust: 1.13.0
     - env: TARGET=powerpc64le-unknown-linux-gnu
       rust: 1.13.0
-    - env: TARGET=s390x-unknown-linux-gnu
+    - env: TARGET=s390x-unknown-linux-gnu DISABLE_TESTS=1
       rust: 1.13.0
     - env: TARGET=x86_64-unknown-linux-gnu
       rust: 1.13.0
@@ -86,9 +86,11 @@ matrix:
       os: osx
 
     # *BSD
-    - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
-      rust: 1.13.0
-    # - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1 # Uses BuildBot instead
+    # FreeBSD i686 and x86_64 use BuildBot instead of Travis
+    # Note that i686-unknown-freebsd is actually using stable Rust instead of
+    # 1.13.0 because rustup does not support i686-unknown-freebsd
+    # - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
+    # - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1
     - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
       rust: 1.13.0
 
@@ -101,16 +103,6 @@ matrix:
     # however be on the lookout for this and file those bugs with upstream.
     - env: TARGET=x86_64-unknown-linux-gnu
       rust: beta
-
-    # Planning to add these targets, but they can fail for now
-    - env: TARGET=mips64-unknown-linux-gnuabi64
-      rust: 1.13.0
-    - env: TARGET=mips64el-unknown-linux-gnuabi64
-      rust: 1.13.0
-    - env: TARGET=arm-unknown-linux-musleabi
-      rust: 1.14.0
-    - env: TARGET=s390x-unknown-linux-gnu
-      rust: 1.13.0
 
 before_install: set -e
 

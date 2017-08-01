@@ -18,6 +18,10 @@ use std::fmt;
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub use self::linux::*;
 
+#[cfg(any(target_os = "linux", target_os = "android",
+          target_os = "freebsd", target_os = "openbsd"))]
+pub use self::setresid::*;
+
 /// User identifier
 ///
 /// Newtype pattern around `uid_t` (which is just alias). It prevents bugs caused by accidentally
@@ -1603,10 +1607,8 @@ pub fn sysconf(var: SysconfVar) -> Result<Option<c_long>> {
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 mod linux {
-    use libc;
     use sys::syscall::{syscall, SYSPIVOTROOT};
     use {Errno, Result, NixPath};
-    use super::{Uid, Gid};
 
     pub fn pivot_root<P1: ?Sized + NixPath, P2: ?Sized + NixPath>(
             new_root: &P1, put_old: &P2) -> Result<()> {
@@ -1620,6 +1622,14 @@ mod linux {
 
         Errno::result(res).map(drop)
     }
+}
+
+#[cfg(any(target_os = "linux", target_os = "android",
+          target_os = "freebsd", target_os = "openbsd"))]
+mod setresid {
+    use libc;
+    use super::{Uid, Gid};
+    use {Errno, Result, NixPath};
 
     /// Sets the real, effective, and saved uid.
     /// ([see setresuid(2)](http://man7.org/linux/man-pages/man2/setresuid.2.html))

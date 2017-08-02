@@ -12,6 +12,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   ([#672](https://github.com/nix-rust/nix/pull/672))
 - Added protocol families in `AddressFamily` enum.
   ([#647](https://github.com/nix-rust/nix/pull/647))
+- Fix compilation and tests for OpenBSD targets
+  ([#688](https://github.com/nix-rust/nix/pull/688))
 
 ### Changed
 - Renamed existing `ptrace` wrappers to encourage namespacing ([#692](https://github.com/nix-rust/nix/pull/692))

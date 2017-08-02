@@ -19,6 +19,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   has changed type from `c_int` to `SockProtocol`.
   It accepts a `None` value for default protocol that was specified with zero using `c_int`.
   ([#647](https://github.com/nix-rust/nix/pull/647))
+- Fix compilation and tests for OpenBSD targets
+  ([#688](https://github.com/nix-rust/nix/pull/688))
 
 ## [0.9.0] 2017-07-23
 

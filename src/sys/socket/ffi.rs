@@ -37,6 +37,9 @@ pub type type_of_msg_iovlen = c_uint;
 // Note that in some cases we store pointers in *const fields that the
 // kernel will proceed to mutate, so users should be careful about the
 // actual mutability of data pointed to by this structure.
+//
+// FIXME: Replace these structs with the ones defined in libc
+// E.g. https://doc.rust-lang.org/libc/x86_64-unknown-linux-gnu/libc/struct.msghdr.html
 #[repr(C)]
 pub struct msghdr<'a> {
     pub msg_name: *const c_void,
